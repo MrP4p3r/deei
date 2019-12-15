@@ -1,25 +1,11 @@
 import asyncio
+from dataclasses import dataclass
 from typing import NoReturn
-from deei import bootstrap
+
+from deei import bootstrap, module, injectable
 
 
-class ValueService:
-
-    @staticmethod
-    def get_value() -> str:
-        return 'four'
-
-
-class TimeoutService:
-
-    value_service: ValueService
-
-    def get_timeout(self):
-        base_timeout = 1
-        additional_timeout = len(self.value_service.get_value()) / 10
-        return base_timeout + additional_timeout
-
-
+@injectable()
 class HttpService:
 
     def __init__(self):
@@ -33,17 +19,45 @@ class HttpService:
         await self.session.close()
 
 
+@module(providers=[HttpService], exports=[HttpService])
+class ApplicationServices:
+    pass
+
+
+@injectable()
+@dataclass()
+class GooglePinger:
+
+    http_service: HttpService
+
+    async def ping(self) -> bool:
+        async with self.http_service.session.get('https://google.com') as response:
+            return response.status == 200
+
+
+@module(
+    providers=[GooglePinger],
+    exports=[GooglePinger]
+)
+class DomainServices:
+    pass
+
+
+@module(
+    imports=[
+        ApplicationServices,
+        DomainServices,
+    ]
+)
+@dataclass()
 class Application:
 
-    value_service: ValueService
-    timeout_service: TimeoutService
-    http_service: HttpService
+    google_pinger: GooglePinger
 
     async def run(self) -> NoReturn:
         for _ in range(3):
-            print('value:', self.value_service.get_value())
-            print('timeout:', self.timeout_service.get_timeout())
-            await asyncio.sleep(self.timeout_service.get_timeout())
+            print(await self.google_pinger.ping())
+            await asyncio.sleep(1)
 
 
 async def main():
