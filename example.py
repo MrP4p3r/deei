@@ -1,8 +1,13 @@
 import asyncio
+import logging
 from dataclasses import dataclass
 from typing import NoReturn
 
 from deei import bootstrap, module, injectable
+
+
+logger = logging.getLogger('example')
+logging.basicConfig(level=logging.DEBUG, format='[%(levelname)1.1s %(asctime)s %(module)s:%(lineno)d] %(message)s')
 
 
 @injectable()
@@ -56,7 +61,9 @@ class Application:
 
     async def run(self) -> NoReturn:
         for _ in range(3):
-            print(await self.google_pinger.ping())
+            logger.info('ping result: {}'.format(
+                await self.google_pinger.ping()
+            ))
             await asyncio.sleep(1)
 
 

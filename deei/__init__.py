@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from contextlib import AsyncExitStack, asynccontextmanager
 from typing import Optional, Iterable, Collection, List, get_type_hints
@@ -14,6 +15,9 @@ __all__ = [
     'get_dependency_name',
     'DeeiContext',
 ]
+
+
+logger = logging.getLogger('deei')
 
 
 @asynccontextmanager
@@ -202,7 +206,7 @@ class DeeiContext(IDeeiContext):
         instance = self._target(**to_inject)
 
         if hasattr(instance, '__aenter__') and hasattr(instance, '__aexit__'):
-            print(f'{type(instance).__name__} is async context manager!')
+            logger.debug(f'{type(instance).__name__} is an async context manager')
             await self._exit_stack.enter_async_context(instance)
 
         self._target_instance = instance
@@ -212,7 +216,7 @@ class DeeiContext(IDeeiContext):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb) -> Optional[bool]:
-        print(f'{self!r}: __aexit__')
+        logger.debug(f'{self!r}: __aexit__')
         await self._exit_stack.aclose()
         return None
 
