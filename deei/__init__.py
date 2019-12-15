@@ -2,9 +2,18 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from contextlib import AsyncExitStack, asynccontextmanager
-from typing import Any, Optional, Iterable, Iterator, Tuple, Collection, List, get_type_hints
+from typing import Optional, Iterable, Collection, List, get_type_hints
 
 from .helpers import *
+
+
+__all__ = [
+    'bootstrap',
+    'injectable', 'is_injectable',
+    'module', 'is_module', 'get_module_metadata', 'ModuleMetadata',
+    'get_dependency_name',
+    'DeeiContext',
+]
 
 
 @asynccontextmanager
@@ -47,10 +56,6 @@ def is_module(target) -> bool:
 
 def get_module_metadata(target) -> ModuleMetadata:
     return getattr(target, '_deei_module_')
-
-
-def get_dependency_hints(target) -> Iterator[Tuple[str, Any]]:
-    return get_type_hints(target.__init__).items()
 
 
 def get_dependency_name(target) -> str:
