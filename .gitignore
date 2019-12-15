@@ -1,0 +1,10 @@
+# IDE
+.idea
+
+# Python
+*.py[cod]
+__pycache__
+*.egg-info
+.eggs
+.venv
+poetry.lock
