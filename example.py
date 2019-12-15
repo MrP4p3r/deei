@@ -7,7 +7,8 @@ from deei import bootstrap, module, injectable
 
 
 logger = logging.getLogger('example')
-logging.basicConfig(level=logging.DEBUG, format='[%(levelname)1.1s %(asctime)s %(module)s:%(lineno)d] %(message)s')
+logging.basicConfig(level=logging.INFO, format='[%(levelname)1.1s %(asctime)s %(module)s:%(lineno)d] %(message)s')
+logging.getLogger('deei').setLevel(logging.DEBUG)
 
 
 @injectable()
@@ -24,7 +25,7 @@ class HttpService:
         await self.session.close()
 
 
-@module(providers=[HttpService], exports=[HttpService])
+@module(providers=[HttpService])
 class ApplicationServices:
     pass
 
@@ -40,20 +41,12 @@ class GooglePinger:
             return response.status == 200
 
 
-@module(
-    providers=[GooglePinger],
-    exports=[GooglePinger]
-)
+@module(providers=[GooglePinger])
 class DomainServices:
     pass
 
 
-@module(
-    imports=[
-        ApplicationServices,
-        DomainServices,
-    ]
-)
+@module(imports=[ApplicationServices, DomainServices])
 @dataclass()
 class Application:
 
