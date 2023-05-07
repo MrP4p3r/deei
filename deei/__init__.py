@@ -141,16 +141,16 @@ class DeeiContext(IDeeiContext):
     def get_name(self) -> str:
         return camelcase_into_snakecase(self._target.__name__)
 
-    def can_provide(self, name: str) -> bool:
+    def can_provide(self, name: str, for_parent: bool = False) -> bool:
         for provider in self._providers:
             if name == provider.get_name():
                 return True
 
         for import_ in self._imports:
-            if import_.can_provide(name):
+            if import_.can_provide(name, for_parent=True):
                 return True
 
-        if self._parent.can_provide(name):
+        if not for_parent and self._parent.can_provide(name):
             return True
 
         return False
@@ -164,7 +164,7 @@ class DeeiContext(IDeeiContext):
                 return True
 
         for export in self._exports:
-            if export.can_provide(name):
+            if export.can_provide(name, for_parent=True):
                 return True
 
         return False
@@ -172,7 +172,7 @@ class DeeiContext(IDeeiContext):
     async def get_target(self):
         return self._target_instance
 
-    async def get_dependency(self, name: str):
+    async def get_dependency(self, name: str, for_parent: bool = False):
         if name in self._dependencies:
             return self._dependencies[name]
 
@@ -185,10 +185,10 @@ class DeeiContext(IDeeiContext):
         for import_ in self._imports:
             if import_.can_export(name):
                 await self._exit_stack.enter_async_context(import_)
-                dependency = self._dependencies[name] = await import_.get_dependency(name)
+                dependency = self._dependencies[name] = await import_.get_dependency(name, for_parent=True)
                 return dependency
 
-        if self._parent.can_provide(name):
+        if not for_parent and self._parent.can_provide(name):
             return await self._parent.get_dependency(name)
 
         raise InjectionError(f'{self!r}: Failed to provide dependency ', name)
